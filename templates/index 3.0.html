@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        h2 {
+            color: #555;
+        }
+
+        .task-form {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .task-submit {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .sortable {
+            padding: 0;
+            list-style-type: none;
+            margin-bottom: 20px;
+        }
+
+        .sortable li {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            margin-right: 10px;
+        }
+
+        .task-checkbox {
+            margin-right: 10px;
+        }
+
+        .delete-button {
+            padding: 5px 10px;
+            background-color: #ff5c5c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .clear-button {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            background-color: #ff5c5c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .task-details {
+            flex-grow: 1;
+        }
+
+        .delete-container {
+            margin-left: auto;
+        }
+
+        .edit-button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .delete-container {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <script>
+        function editTask(taskId) {
+            var taskName = prompt("Enter the new task name:");
+            if (taskName !== null && taskName.trim() !== "") {
+                var form = document.createElement("form");
+                form.method = "POST";
+                form.action = "/edit/" + taskId;
+
+                var input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "task";
+                input.value = taskName;
+
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        $(function() {
+            $(".sortable").sortable({
+                handle: ".drag-handle",
+                update: function(event, ui) {
+                    var taskIds = $(this).sortable("toArray");
+                    $.post("/rearrange", { taskIds: taskIds });
+                }
+            }).disableSelection();
+
+            $("#clear-completed").click(function() {
+                $.post("/clear-completed", function(data) {
+                    location.reload();
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <form class="task-form" action="/add" method="post">
+            <input class="task-input" type="text" name="task" placeholder="Add a task" required>
+            <button class="task-submit" type="submit">Add</button>
+        </form>
+        <h2>Incomplete Tasks</h2>
+        <ul class="sortable">
+            {% for task in tasks %}
+                {% if not task.completed %}
+                    <li id="{{ task._id }}">
+                        <div class="task-details">
+                            <span class="drag-handle">&#9776;</span>
+                            <form class="task-form" action="/complete/{{ task._id }}" method="post">
+                                <input class="task-checkbox" type="checkbox" onchange="this.form.submit()" {% if task.completed %} checked {% endif %}>
+                                {{ task.name }}
+                            </form>
+                        </div>
+                        <div class="delete-container">
+                            <form class="task-form" action="/edit/{{ task._id }}" method="post">
+                                <button class="edit-button" type="submit">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </form>
+                            <form class="task-form" action="/delete/{{ task._id }}" method="post">
+                                <button class="delete-button" type="submit">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <h2>Completed Tasks</h2>
+    <ul>
+        {% for task in tasks %}
+            {% if task.completed %}
+                <li><s>{{ task.name }}</s></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <div class="clear-button">
+        <form action="/clear" method="post">
+            <input type="submit" value="Clear Completed">
+        </form>
+    </div>
+
+</body>
+</html>

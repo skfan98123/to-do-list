@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        h2 {
+            color: #555;
+        }
+
+        .task-form {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .task-submit {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .sortable {
+            padding: 0;
+            list-style-type: none;
+            margin-bottom: 20px;
+        }
+
+        .sortable li {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            margin-right: 10px;
+        }
+
+        .task-checkbox {
+            margin-right: 10px;
+        }
+
+        .delete-button {
+            padding: 5px 10px;
+            background-color: #ff5c5c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .clear-button {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            background-color: #ff5c5c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .task-details {
+            flex-grow: 1;
+        }
+
+        .delete-container {
+            margin-left: auto;
+        }
+
+        .edit-button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .delete-container {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-6ExvY4+gKnNn1BY6dQfDW4lDtwFQf+Qy0lOasTC6hzwfUId+bkub5I3CoWfSDN3ELwe6DyOKjCEyjCv2HFafyQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <form class="task-form" action="/add" method="post">
+            <input class="task-input" type="text" name="taskName" placeholder="Enter a task" required>
+            <button class="task-submit" type="submit">Add Task</button>
+        </form>
+        <h2>Tasks:</h2>
+        <ul class="sortable">
+            {{#each tasks}}
+            <li>
+                <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
+                <input class="task-checkbox" type="checkbox" {{#if completed}}checked{{/if}}>
+                <div class="task-details">{{taskName}}</div>
+                <div class="delete-container">
+                    <form class="task-form" action="/edit/{{ _id }}" method="post">
+                        <input class="edit-input" type="text" name="newTaskName" placeholder="New task name" required>
+                        <button class="edit-button" type="submit">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </form>
+                    <form class="task-form" action="/delete/{{ _id }}" method="post">
+                        <button class="delete-button" type="submit">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </li>
+            {{/each}}
+        </ul>
+        <button class="clear-button" onclick="event.preventDefault(); document.getElementById('clear-form').submit();">
+            Clear Completed Tasks
+        </button>
+        <form id="clear-form" action="/clear" method="post" style="display: none;"></form>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-TE5VLhnD8KL3rIk56S9sXe32j15WMwxxJuhwyKfJNn6Tjv99yPKH5fiyF1c6T4KACabmc4IqXDCn01GmiWVw5A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js" integrity="sha512-Y+z/yJ2y1tv8pYZuef3T7KgCmvlnsKxllCDB5oO1FimvwR3ifV64uxcA6WfDpVf4P3ffMqA/cMi0fB0dV3Onvg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        $(function () {
+            $(".sortable").sortable();
+        });
+    </script>
+</body>
+</html>
